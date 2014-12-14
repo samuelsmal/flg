@@ -16,7 +16,7 @@ public class DiamondSquare {
 			diamondStep(map, rand, roughness, i);
 			squareStep(map, rand, roughness, i);
 			
-//			roughness /= 2;
+//			roughness *= 0.8;
 		}
 		
 		return map;
