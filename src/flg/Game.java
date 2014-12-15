@@ -34,14 +34,15 @@ public class Game
         // creates an environment without a default room.
         // It also allows more advanced features like reflections and shadows.
         Env env = new EnvAdvanced();
+        env.setResolution(1200, 600, 0);
+        env.enableLighting();
 
 
-        int dim = pow(2, 4);
-        double[][] map = new double[dim][dim];
-        map[0][0] = map[0][dim - 1] = map[dim - 1][0] = map[dim - 1][dim - 1] = 3.4d;
+        int dim = pow(2, 6);
+        double[][] map = Map.hillCenterMap(dim, 0d, 10d);
 
         System.out.println(map[0][0]);
-        map = DiamondSquare.applyDiamondSquare(map, 12.4d);
+        map = DiamondSquare.applyDiamondSquare(map, 7.5d);
         System.out.println("diamond square completed");
 
         // Creates a height map of size 8x8. With a little hill in the middle.
@@ -57,7 +58,7 @@ public class Game
         // Create the terrain object based on the heightmap
         EnvTerrain terrain = new EnvTerrain(heightMap);
         // Terrain needs a texture
-        // terrain.setTexture("textures/mud.gif");
+        terrain.setTexture("textures/moss.png");
 
         // Add the terrain object to the environemnt.
         env.addObject(terrain);
@@ -69,7 +70,30 @@ public class Game
         env.exit();
     }
 
+    public void play_imagebased(String file) {
+        Env env = new EnvAdvanced();
+        env.enableLighting();
+
+        // Use an image to provide height data, this image is 256x256
+        EnvTerrain terrain = new EnvTerrain(file);
+        // Terrain needs a texture
+        terrain.setTexture("textures/moss.png");
+
+        // Add the terrain object to the environemnt.
+        env.addObject(terrain);
+
+        // Inspect the entire terrain from far away.
+        env.setCameraXYZ(128, 250, 400);
+        env.setCameraPitch(-20);
+
+        // Exit when the escape key is pressed
+        while (env.getKey() != 1) {
+            env.advanceOneFrame();
+        }
+        env.exit();
+    }
+
     public static void main(String[] args) {
-        (new Game()).play();
+        (new Game()).play_imagebased("termaps/processing_termap1.png");
     }
 }
