@@ -1,15 +1,9 @@
 package flg;
 
 
-import com.jme3.math.ColorRGBA;
-import com.jme3.math.Vector3f;
-
 import env3d.Env;
 import env3d.advanced.EnvAdvanced;
-import env3d.advanced.EnvParticle;
-import env3d.advanced.EnvSkyRoom;
 import env3d.advanced.EnvTerrain;
-import env3d.advanced.EnvWater;
 
 
 public class Game
@@ -41,77 +35,36 @@ public class Game
         // creates an environment without a default room.
         // It also allows more advanced features like reflections and shadows.
         Env env = new EnvAdvanced();
+        env.setResolution(1200, 600, 0);
+        env.enableLighting();
 
 
-        int dim = pow(2, 8);
-        double[][] map = new double[dim][dim];
-        map[0][0] = map[0][dim - 1] = map[dim - 1][0] = map[dim - 1][dim - 1] = 1.4d;
+        int dim = pow(2, 6) + 1;
+//        double[][] map = Map.hillCenterMap(dim, 0d, 144d);
 
+        double[][] map = DSA.getMap(dim, 144d);
+        
         System.out.println(map[0][0]);
-        map = DiamondSquare.applyDiamondSquare(map, 21.4d);
+        DiamondSquare.applyDiamondSquare(map, 160d);
         System.out.println("diamond square completed");
 
         // Creates a height map of size 8x8. With a little hill in the middle.
-        double heightMap[] = new double[dim * dim];
+        double heightMap[] = new double[(dim - 1) * (dim - 1)];
 
         int heightMapCounter = 0;
-        for (double[] element : map) {
-            for (int j = 0; j < map[0].length; ++j) {
-                heightMap[heightMapCounter++] = element[j];
-            }
-        }
-        
-        String root = "/home/samuel/Documents/Studium/05_HS14/03_Einführung-in-die-Computergestützte-Naturwissenschaften-2/flg";
-        
-        EnvSkyRoom skyroom = new EnvSkyRoom(root + "/textures/skybox/interstellar/");
-        
-        // EnvSkyRoom is a room, so we use env.setRoom() to set make it visible in our
-        // environment.
-        env.setRoom(skyroom);
-
-        EnvWater water = new EnvWater();
-        // Make the water plain a 10x10 square
-        water.setScale(dim);
-        water.setRotateZ(-Math.PI / 2d);
-          
-        // Add the wataer object into our environment.
-        env.addObject(water);
+        for (int i = 0; i < map.length - 1; i++) {
+			for (int j = 0; j < map.length - 1	; j++) {
+				heightMap[heightMapCounter++] = map[i][j];
+			}
+		}
                   
         // Create the terrain object based on the heightmap
         EnvTerrain terrain = new EnvTerrain(heightMap);
         // Terrain needs a texture
-        terrain.setTexture(root + "/textures/doty_sad.png");
         
-        terrain.setScale(1, 0.2, 1);
-        
-        // Add the terrain object to the environemnt.
+        terrain.setTexture("textures/moss.png");
         env.addObject(terrain);
-        
-     // Create a particle system with 10000 particles
-        EnvParticle particle = new EnvParticle(10000);
- 
-        // emit in the negative y direction
-        particle.getJmeParticleSystem().getParticleInfluencer().setInitialVelocity(new Vector3f(0, -5, 0));
-         
-        // size of each particle
-        particle.getJmeParticleSystem().setStartSize(0.05f);
-        particle.getJmeParticleSystem().setEndSize(0.01f);
-        // how long does each particle last       
-        particle.getJmeParticleSystem().setLowLife(100);
-        particle.getJmeParticleSystem().setHighLife(10000);
-        // The start and end color, color is (r, g, b, alpha). 
-        // alpha = 1 means visible, alpha = 0 means transparent
-        particle.getJmeParticleSystem().setStartColor(new ColorRGBA(1, 1, 1, 1));
-        particle.getJmeParticleSystem().setEndColor(new ColorRGBA(1, 1, 1, 0.8f));
- 
-        // Sets the texture to be a snowfake
-        particle.setTexture("textures/particle/snowflake.png");       
-        // put the particle system much higher than the camera
-        particle.setY(50);
-          
-        // add the particle to the environment.
-        // The default center point is 0, 0, 0.
-        env.addObject(particle);
+
 
         // Exit when the escape key is pressed
         while (env.getKey() != 1) {
@@ -127,7 +80,31 @@ public class Game
         env.exit();
     }
 
+    public void play_imagebased(String file) {
+        Env env = new EnvAdvanced();
+        env.enableLighting();
+
+        // Use an image to provide height data, this image is 256x256
+        EnvTerrain terrain = new EnvTerrain(file);
+        // Terrain needs a texture
+        terrain.setTexture("textures/moss.png");
+
+        // Add the terrain object to the environemnt.
+        env.addObject(terrain);
+
+        // Inspect the entire terrain from far away.
+        env.setCameraXYZ(128, 250, 400);
+        env.setCameraPitch(-20);
+
+        // Exit when the escape key is pressed
+        while (env.getKey() != 1) {
+            env.advanceOneFrame();
+        }
+        env.exit();
+    }
+
     public static void main(String[] args) {
         (new Game()).play();
+//        (new Game()).play_imagebased("termaps/processing_termap1.png");
     }
 }

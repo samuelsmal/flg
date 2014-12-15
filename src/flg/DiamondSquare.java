@@ -6,79 +6,54 @@ import java.util.Random;
 public class DiamondSquare {
 	/**
 	 * 
-	 * @param map
-	 * @param roughness > 0 && < 1 
+	 * @param points
+	 * @param roughness
 	 */
-	public static double[][] applyDiamondSquare(double[][] map, double roughness) {
-		Random rand = new Random();
-		
-		for (int i = map.length / 2; i > 0; --i) {
-			diamondStep(map, rand, roughness, i);
-			squareStep(map, rand, roughness, i);
-			
-//			roughness *= 0.8;
-		}
-		
-		return map;
+	public static void applyDiamondSquare(double[][] points, double roughness) {
+		applyDiamondSquare(points, roughness, points.length);
 	}
 	
-	private static void diamondStep(double[][] points, Random rand, double roughness, int length) {
-		for (int i = 0; i < points.length; ++i) {
-			for (int j = 0; j < points.length; ++j) {
-				ArrayList<Double> parentValues = new ArrayList<Double>();
-				
-				if (i >= length / 2) {
-					if (j >= length / 2) {
-						parentValues.add(points[i - length / 2][j - length / 2]);
-					}
-					
-					if (j + length / 2 < points.length) {
-						parentValues.add(points[i - length / 2][j + length / 2]);
-					}
-				}
-				
-				if (i + length / 2 < points.length) {
-					if (j >= length / 2) {
-						parentValues.add(points[i + length / 2][j - length / 2]);
-					}
-					
-					if (j + length / 2 < points.length) {
-						parentValues.add(points[i + length / 2][j + length / 2]);
-					}
-				}
-				
-				points[i][j] = average(parentValues) + (rand.nextDouble() - 0.5d)*roughness;
+	
+	public static void applyDiamondSquare(double[][] points, double roughness, int steps) {
+		Random rand = new Random();
+		
+		for (int sideLength = points.length - 1, j = 0; sideLength >= 2 && j < steps; sideLength /= 2, ++j) {
+			diamondStep(points, rand, roughness, sideLength);
+			squareStep(points, rand, roughness, sideLength);
+			
+			roughness /= 2f;
+		}
+	}
+	
+	private static void diamondStep(double[][] points, Random rand, double roughness, int sideLength) {
+		for (int i = 0; i < points.length - 1; i += sideLength) {
+			for (int j = 0; j < points.length - 1; j += sideLength) {
+				double avg = points[i][j] + //top left
+					      points[i + sideLength][j] +//top right
+					      points[i][j+sideLength] + //lower left
+					      points[i+sideLength][j+sideLength];//lower right
+				avg /= 4.0f;
+							
+				points[i + sideLength / 2][j + sideLength / 2] = avg + ((rand.nextDouble() * 2 * roughness) - roughness);
 			}
 		}
 	}
 	
-	private static void squareStep(double[][] map, Random rand, double roughness, int length) {
-		
-		for (int i=0;i<map.length;++i){
-			for(int j=0; j<map.length;++j){
-				ArrayList<Double> values = new ArrayList<Double>();
-			
-				if (i >= length) {
-					if (j >= length) {
-						values.add(map[i - length/2][j]);
-					}
-					
-					if (j + length < map.length) {
-						values.add(map[i][j + length/2]);
-					}
-				}
+	private static void squareStep(double[][] points, Random rand, double roughness, int sideLength) {
+		for (int i = 0; i < points.length - 1; i += sideLength){
+			for(int j = 0; j < points.length - 1; j += sideLength){
+				double avg = 
+				        points[(i - sideLength / 2 + points.length -1)%(points.length - 1)][j] + //left of center
+				        points[(i + sideLength / 2                   )%(points.length - 1)][j] + //right of center
+				        points[i][(j + sideLength / 2                    )%(points.length - 1)] + //below center
+				        points[i][(j - sideLength / 2 + points.length - 1)%(points.length - 1)]; //above center
+				      avg /= 4.0;
 				
-				if (i + length < map.length) {
-					if (j >= length) {
-						values.add(map[i][j - length/2]);
-					}
-					
-					if (j + length < map.length) {
-						values.add(map[i + length/2][j]);
-					}
-				}
+				double newValue = avg + ((rand.nextDouble() * 2 * roughness) - roughness);
+				points[i][j] = newValue;
 				
-				map[i][j] = average(values) + (rand.nextDouble() - 0.5d)*roughness;
+				if (i == 0) points[points.length -1][j] = newValue;
+				if (j == 0) points[i][points.length -1] = newValue;
 			}
 		}
 	}
@@ -86,7 +61,7 @@ public class DiamondSquare {
 	private static double average(ArrayList<Double> l) {
 		double sum = 0f;
 		
-		for (double i : l) {
+		for (Double i : l) {
 			sum += i;
 		}
 		
